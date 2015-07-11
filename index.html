@@ -1,0 +1,99 @@
+﻿<!DOCTYPE html>
+<html ng-app="myapp">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta charset="utf-8" />
+    <title>BCM extraction</title>
+
+    <!-- Références BlankCordovaApp1 -->
+    <link href="css/index.css" rel="stylesheet" />
+    <link href="lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <script type="text/javascript" src="lib/angular/angular.min.js"></script>
+    <script type="text/javascript" src="lib/angular-route/angular-route.min.js"></script>
+    <script type="text/javascript" src="lib/jquery/dist/jquery.min.js"></script>
+    <script type="text/javascript" src="lib/bootstrap/dist/js/bootstrap.min.js"></script>    
+    <script type="text/javascript">
+        var myapp = angular.module('myapp', ['ngRoute','AllCtr']);
+        myapp.config(['$routeProvider',
+          function ($routeProvider) {
+              $routeProvider.
+                when('/', {
+                    templateUrl: 'default.html',
+                    controller: 'bodyController'
+                }).                         
+                otherwise({
+                    redirectTo: '/'
+                });
+          }]);
+        var ctr = angular.module('AllCtr',[]);
+        ctr.controller('bodyController', ['$scope', '$http', function ($scope, $http) {            
+            $scope.money = [];
+            $scope.moneyRate = {};            
+            $scope.changeRate = function (rate) {
+                $scope.m_p = $scope.moneyRate[rate];
+                console.log($scope.m_p);
+                return $scope.moneyRate[rate];                
+            };
+            
+            $http.get('/bank/proxy.php').success(function (data) {
+                var table = $(data).find('table').get(6);//1ère table contenant les devises
+                var tr = $(table).find('tr').get(0);//1ère tr
+                var td = $(tr).find('td').get(0);//1ère td
+                var date = $(td).find('strong').get(0);//1ère strong dans 1ère td
+                var context = $(td).find('table').get(0);//1ère table dans 1ère td                
+                $(context).find('tr').each(function (i_, tr_) {
+                    var temp='';
+                    $(tr_).find('td').each(function (i__, td_) {
+                        if(i__==0){
+                            temp=$(td_).text();
+                            $scope.moneyRate[$(td_).text()] = 0;
+                            $scope.money[i_] = temp;
+                            $('#m_c').append('<option value="' + $scope.money[i_] + '">' + $scope.money[i_] + '</option>');
+                        }
+                        else{
+                            $scope.moneyRate[temp] = $(td_).text();
+                        }                        
+                    });
+                });
+
+                $scope.m_c = $scope.money[0];
+                console.log($scope.moneyRate);
+                $('#tb').append($(context).html());
+            }).error(function () {
+                $scope.money = ['EUR','USD'];
+                $scope.moneyRate = {'EUR':3125.4,'USD':2300};
+                $scope.api = function () {
+                    return 'Cannot connect to Madagascar Central Bank';
+                };
+            });
+        }]);       
+    </script>
+</head>
+<body>
+
+    <!-- Référence Cordova ajoutée à votre application une fois générée. -->      
+    <div class="container">
+        <div class="page-header"><h2>Exchange rate</h2></div>
+        <div class="row">
+            <div class="col-xs-8">
+                <form ng-init="m_q=0;">
+                    <fieldset>   <legend><span>{{m_c}}</span></legend>      <!--               -->
+                        <div class="form-group"><label for="q">Quantity:</label><input type="text" class="form-control" name="q" value="1" ng-model="m_q" /></div>
+                        <div class="form-group"><label for="p">Price:</label><input type="text" class="form-control" name="p" value="{{changeRate(m_c) | currency:m_c}}"  readonly /></div>
+                        <span class="label label-default" style="color:red;">{{api()}}</span>
+                        <div class="form-group"><label for="p">Currency:</label>                           
+                            <select class="form-control" ng-model="m_c" id="m_c">
+                                
+                            </select>
+                        </div>
+                        <div class="form-group"><label>Total:{{m_q*m_p | currency:m_c}}</label></div>
+                    </fieldset>
+                </form>                            
+            </div>  
+            <div class="col-xs-4">                
+                <div ng-view></div>
+            </div>
+        </div>             
+    </div>
+</body>
+</html>
