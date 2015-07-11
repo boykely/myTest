@@ -14,7 +14,7 @@
     <script type="text/javascript" src="lib/bootstrap/dist/js/bootstrap.min.js"></script>    
     <script type="text/javascript">
         var myapp = angular.module('myapp', ['ngRoute','AllCtr']);
-        myapp.config(['$routeProvider',
+        /*myapp.config(['$routeProvider',
           function ($routeProvider) {
               $routeProvider.
                 when('/', {
@@ -24,14 +24,14 @@
                 otherwise({
                     redirectTo: '/'
                 });
-          }]);
+          }]);*/
         var ctr = angular.module('AllCtr',[]);
-        ctr.controller('bodyController', ['$scope', '$http', function ($scope, $http) {            
+        ctr.controller('bodyController', ['$scope', '$http', function ($scope, $http) { 
+			$scope.m_q='1';
             $scope.money = [];
             $scope.moneyRate = {};            
             $scope.changeRate = function (rate) {
-                $scope.m_p = $scope.moneyRate[rate];
-                console.log($scope.m_p);
+                $scope.m_p = $scope.moneyRate[rate];                
                 return $scope.moneyRate[rate];                
             };
             
@@ -45,20 +45,18 @@
                     var temp='';
                     $(tr_).find('td').each(function (i__, td_) {
                         if(i__==0){
-                            temp=$(td_).text();
-                            $scope.moneyRate[$(td_).text()] = 0;
-                            $scope.money[i_] = temp;
+                            temp=$(td_).text();                            							
+							$scope.money[i_] = temp.trim();								
                             $('#m_c').append('<option value="' + $scope.money[i_] + '">' + $scope.money[i_] + '</option>');
                         }
-                        else{
-                            $scope.moneyRate[temp] = $(td_).text();
+                        else{							
+                            $scope.moneyRate[temp] = $(td_).text().split(' ').join('').replace(',','.');
                         }                        
                     });
-                });
-
-                $scope.m_c = $scope.money[0];
-                console.log($scope.moneyRate);
+                });                
                 $('#tb').append($(context).html());
+				$('.ajax').hide();
+				$('.loading').show();
             }).error(function () {
                 $scope.money = ['EUR','USD'];
                 $scope.moneyRate = {'EUR':3125.4,'USD':2300};
@@ -69,30 +67,31 @@
         }]);       
     </script>
 </head>
-<body>
+<body ng-controller="bodyController">
 
     <!-- Référence Cordova ajoutée à votre application une fois générée. -->      
     <div class="container">
         <div class="page-header"><h2>Exchange rate</h2></div>
         <div class="row">
             <div class="col-xs-8">
-                <form ng-init="m_q=0;">
-                    <fieldset>   <legend><span>{{m_c}}</span></legend>      <!--               -->
-                        <div class="form-group"><label for="q">Quantity:</label><input type="text" class="form-control" name="q" value="1" ng-model="m_q" /></div>
+                <form>
+                    <fieldset>   <legend></legend>      <!--               -->
+                        <div class="form-group"><label for="q">Local money by Ariary:</label><input type="text" class="form-control" name="q" ng-model="m_q" /></div>
                         <div class="form-group"><label for="p">Price:</label><input type="text" class="form-control" name="p" value="{{changeRate(m_c) | currency:m_c}}"  readonly /></div>
                         <span class="label label-default" style="color:red;">{{api()}}</span>
-                        <div class="form-group"><label for="p">Currency:</label>                           
-                            <select class="form-control" ng-model="m_c" id="m_c">
-                                
+                        <div class="form-group"><label for="p">Currency:</label>
+							<span class="ajax"><img src="images/ajax-loader.gif"/></span>
+                            <select class="form-control loading" ng-model="m_c" id="m_c" style="display:none;">
+                                <option value="...">...</option>
                             </select>
                         </div>
-                        <div class="form-group"><label>Total:{{m_q*m_p | currency:m_c}}</label></div>
+                        <div class="form-group"><label>Total:{{m_q/m_p | currency:m_c}}</label></div>
                     </fieldset>
                 </form>                            
             </div>  
             <div class="col-xs-4">                
                 <table id="tb"></table>
-					<div>{{m_c}}</div>
+					<div></div>
 				</div>
         </div>             
     </div>
