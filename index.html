@@ -18,15 +18,23 @@
           function ($routeProvider) {
               $routeProvider.
                 when('/', {
-                    templateUrl: 'default.html',
-                    controller: 'bodyController'
-                }).                         
+                    templateUrl: 'bank.html',
+                    controller: 'ChangeController'
+                }).
+				when('/bank',{
+					templateUrl: 'bank.html',
+                    controller: 'ChangeController'
+				}).
+				when('/drugStore',{
+					templateUrl: 'drugStore.html',
+                    controller: 'drugStoreController'
+				}).
                 otherwise({
                     redirectTo: '/'
                 });
           }]);
         var ctr = angular.module('AllCtr',[]);
-        ctr.controller('bodyController', ['$scope', '$http', function ($scope, $http) { 
+        ctr.controller('ChangeController', ['$scope', '$http', function ($scope, $http) { 
 			$scope.m_q='1';
             $scope.money = [];
             $scope.moneyRate = {};            
@@ -35,66 +43,63 @@
                 return $scope.moneyRate[rate];                
             };
             
-            $http.get('/bank/proxy.php').success(function (data) {
-                var table = $(data).find('table').get(6);//1ère table contenant les devises
-                var tr = $(table).find('tr').get(0);//1ère tr
-                var td = $(tr).find('td').get(0);//1ère td
-                var date = $(td).find('strong').get(0);//1ère strong dans 1ère td
-                var context = $(td).find('table').get(0);//1ère table dans 1ère td				
-                $(context).find('tr').each(function (i_, tr_) {
-                    var temp='';
-                    $(tr_).find('td').each(function (i__, td_) {
-                        if(i__==0){
-                            temp=$(td_).text();                            							
-							$scope.money[i_] = temp.trim();								
-                            //$('#m_c').append('<option value="' + $scope.money[i_] + '">' + $scope.money[i_] + '</option>');							
-                        }
-                        else{							
-                            $scope.moneyRate[temp] = $(td_).text().split(' ').join('').replace(',','.');
-                        }                        
-                    });
-                });
-				$scope.m_c='EUR';
-                $('#tb').append($(context).html());
+            $http.get('/bank/proxy.php').success(function (data,status) {
+				if($(data).find('.xdebug-error').length!=0){						
+					$scope.api = function () {
+						return 'Cannot connect to Madagascar Central Bank';
+					};					
+				}
+				else{
+					var table = $(data).find('table').get(6);//1ère table contenant les devises
+					var tr = $(table).find('tr').get(0);//1ère tr
+					var td = $(tr).find('td').get(0);//1ère td
+					var date = $(td).find('strong').get(0);//1ère strong dans 1ère td
+					var context = $(td).find('table').get(0);//1ère table dans 1ère td				
+					$(context).find('tr').each(function (i_, tr_) {
+						var temp='';
+						$(tr_).find('td').each(function (i__, td_) {
+							if(i__==0){
+								temp=$(td_).text();                            							
+								$scope.money[i_] = temp.trim();								
+								//$('#m_c').append('<option value="' + $scope.money[i_] + '">' + $scope.money[i_] + '</option>');							
+							}
+							else{							
+								$scope.moneyRate[temp] = $(td_).text().split(' ').join('').replace(',','.');
+							}                        
+						});
+					});
+					$scope.m_c='EUR';
+					//$('#tb').append($(context).html());
+					
+				}
 				$('.ajax').hide();
 				$('.loading').show();
-            }).error(function () {
+                				
+            }).error(function (status) {
 				$('.ajax').hide();
 				$('.loading').show();
                 $scope.money = ['EUR','USD'];
                 $scope.moneyRate = {'EUR':3125.4,'USD':2300};
                 $scope.api = function () {
                     return 'Cannot connect to Madagascar Central Bank';
-                };
+                };				
             });
         }]);       
-    </script>
+		ctr.controller('drugStoreController',['$scope','$http',function($scope,$http){
+		
+		}]);
+	</script>
 </head>
 <body>
     <!-- Référence Cordova ajoutée à votre application une fois générée. -->      
     <div class="container">
-        <div class="page-header"><h2>Exchange rate</h2></div>
-        <div class="row">
-            <div class="col-xs-8">
-                <form>
-                    <fieldset>   <legend></legend>      <!--               -->
-                        <div class="form-group"><label for="q">Local money by Ariary:</label><input type="text" class="form-control" name="q" ng-model="m_q" /></div>
-                        <div class="form-group"><label for="p">Price:</label><input type="text" class="form-control" name="p" value="{{changeRate(m_c) | currency:m_c}}"  readonly /></div>
-                        <span class="label label-default" style="color:red;">{{api()}}</span>
-                        <div class="form-group"><label for="p">Currency:</label>
-							<span class="ajax"><img src="images/ajax-loader.gif"/></span>
-                            <select class="form-control loading" ng-model="m_c" id="m_c" style="display:none;" ng-options="c for c in money">
-                                <option value="...">...</option>
-                            </select>
-                        </div>
-                        <div class="form-group"><label>Total:{{m_q/m_p | currency:m_c}}</label></div>
-                    </fieldset>
-                </form>                            
-            </div>  
-            <div class="col-xs-4">
+		<ul class="nav navbar-nav">
+			<li><a href="#/bank">Exchange Rate</a></li>
+			<li><a href="#/drugStore">Drug Store</a></li>
+		</ul>
+		<div class="col-xs-12">
 				<div ng-view></div>
-            </div>
-        </div>             
+         </div>                   
     </div>
 </body>
 </html>

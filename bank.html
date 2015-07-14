@@ -1,0 +1,24 @@
+<div class="page-header"><h2>Exchange rate</h2></div>
+ <div class="row">
+    <div class="col-xs-8">
+        <form>
+            <fieldset>   <legend></legend>      <!--               -->
+            <div class="form-group"><label for="q">Local money by Ariary:</label><input type="text" class="form-control" name="q" ng-model="m_q" /></div>
+            <div class="form-group"><label for="p">Price:</label><input type="text" class="form-control" name="p" value="{{changeRate(m_c) | currency:m_c}}"  readonly /></div>
+			<span class="label label-default" style="color:red;">{{api()}}</span>
+			<div class="form-group"><label for="p">Currency:</label>
+			<span class="ajax"><img src="images/ajax-loader.gif"/></span>
+            <select class="form-control loading" ng-model="m_c" id="m_c" style="display:none;" ng-options="c for c in money">
+                 <option value="...">...</option>
+			</select>
+			</div>
+			<div class="form-group"><label>Total:{{m_q/m_p | currency:m_c}}</label></div>
+			</fieldset>
+        </form>                            
+    </div>  
+            
+</div>
+<div class="row">
+	<!--<table id="tb"></table>
+	<div>{{m_c}}</div>-->
+</div> 
