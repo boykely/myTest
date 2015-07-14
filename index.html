@@ -14,7 +14,7 @@
     <script type="text/javascript" src="lib/bootstrap/dist/js/bootstrap.min.js"></script>    
     <script type="text/javascript">
         var myapp = angular.module('myapp', ['ngRoute','AllCtr']);
-        /*myapp.config(['$routeProvider',
+        myapp.config(['$routeProvider',
           function ($routeProvider) {
               $routeProvider.
                 when('/', {
@@ -24,7 +24,7 @@
                 otherwise({
                     redirectTo: '/'
                 });
-          }]);*/
+          }]);
         var ctr = angular.module('AllCtr',[]);
         ctr.controller('bodyController', ['$scope', '$http', function ($scope, $http) { 
 			$scope.m_q='1';
@@ -70,8 +70,7 @@
         }]);       
     </script>
 </head>
-<body ng-controller="bodyController">
-
+<body>
     <!-- Référence Cordova ajoutée à votre application une fois générée. -->      
     <div class="container">
         <div class="page-header"><h2>Exchange rate</h2></div>
@@ -92,10 +91,9 @@
                     </fieldset>
                 </form>                            
             </div>  
-            <div class="col-xs-4">                
-                <table id="tb"></table>
-					<div></div>
-				</div>
+            <div class="col-xs-4">
+				<div ng-view></div>
+            </div>
         </div>             
     </div>
 </body>
