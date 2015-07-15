@@ -43,7 +43,7 @@
                 return $scope.moneyRate[rate];                
             };
             
-            $http.get('/bank/proxy.php').success(function (data,status) {
+            $http.get('/bank/proxy.php?url=http://www.banque-centrale.mg').success(function (data,status) {
 				if($(data).find('.xdebug-error').length!=0){						
 					$scope.api = function () {
 						return 'Cannot connect to Madagascar Central Bank';
@@ -86,7 +86,34 @@
             });
         }]);       
 		ctr.controller('drugStoreController',['$scope','$http',function($scope,$http){
-		
+			$scope.m_welcome='En cours d\'extraction';
+			$http.get('/bank/proxy.php?url=http://ordrepharmacien.mg/recherche-pharmacie-de-garde/').success(function(data){
+				if($(data).find('.xdebug-error').length!=0){						
+					$scope.m_welcome='Cannot connect to Ordre des pharmaciens de Madagascar';				
+				}
+				else{				
+					$scope.m_welcome=undefined;
+					$scope.m_pharmacies=[];
+					var table=$(data).find('#table_pharm')[0];
+					var date=$(data).find('h3')[0];
+					$scope.m_date=date.innerText;
+					$(table).find('tr').each(function(index,val){
+						if(index!=0){
+							var tds=$(val).find('td');
+							
+							$scope.m_pharmacies.push({
+								'Name':$(tds.get(0)).text(),
+								'Adresse':$(tds.get(1)).text(),
+								'Contact':$(tds.get(2)).text()
+							});
+						}
+					});
+				}				
+				$('.loading').hide();
+			}).
+			error(function(){
+			
+			});
 		}]);
 	</script>
 </head>
@@ -96,10 +123,11 @@
 		<ul class="nav navbar-nav">
 			<li><a href="#/bank">Exchange Rate</a></li>
 			<li><a href="#/drugStore">Drug Store</a></li>
-		</ul>
+		</ul>		
 		<div class="col-xs-12">
 				<div ng-view></div>
-         </div>                   
+         </div>                
+		 <div class="col-xs-12"><span>All these datasources come directly from BCM and ordrepharmaciens websites</span></div>
     </div>
 </body>
 </html>

@@ -1,5 +1,6 @@
 <?php
 header("Content-Type:text/html");
-$homepage = file_get_contents('http://www.banque-centrale.mg/');
+$url=$_GET['url'];
+$homepage = file_get_contents($url);
 echo $homepage;
 ?>
