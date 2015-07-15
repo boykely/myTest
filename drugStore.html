@@ -1,10 +1,10 @@
 ﻿<div class="page-header" ng-init="v=['lala','rak']"><span>Pharmacie de garde</span></div>
- <div class="row">
-    <div class="col-xs-8 loading">
-        <span>{{m_welcome}}</span>
+ <div class="row">	
+	<div class="col-xs-6"><span>{{m_welcome}}</span></div>
+    <div class="col-xs-6 loading">        
 		<span class="ajax"><img src="images/ajax-loader.gif"/></span>		
     </div>
-	<div class="col-xs-8 res">
+	<div class="col-xs-12 res">
 		<h3>{{m_date}}</h3>
 		<table class="table">
 			<tr ng-repeat="ph in m_pharmacies"><td>{{ph.Name}}</td><td>{{ph.Adresse}}</td><td>{{ph.Contact}}</td><tr>
