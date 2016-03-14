@@ -1,14 +1,22 @@
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferByte;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 
 import org.opencv.core.Core;
+import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
+
 public class ExternProcess 
 {
+	public static enum GradientType
+	{
+		R,G,B,RGB,Grey
+	}
 	public static void HistogrammeRGB(Mat m,int[] R,int[] G,int[] B)
 	{
 		byte[] col=new byte[3];
@@ -238,5 +246,155 @@ public class ExternProcess
 			System.err.println("Regularize erreur:"+e.getMessage());
 		}
 		
+	}
+	public static void Gradient(Mat imageCV3,Mat imageCV4,GradientType type)
+	{
+		double[] color=new double[3];
+		double[] greyCol=new double[3];
+		byte[] pixelN=new byte[3];
+		byte[] pixelS=new byte[3];
+		byte[] pixelE=new byte[3];
+		byte[] pixelW=new byte[3];
+		
+		int dx=0;
+		int dy=0;
+		int dB=0;
+		for(int i=0;i<imageCV3.rows();i++)
+		{
+			for(int j=0;j<imageCV3.cols();j++)
+			{					
+				//
+				imageCV3.get(i-1<0?i:(i-1), j,pixelN);
+				imageCV3.get(i+1<imageCV3.rows()?i+1:i, j,pixelS);
+				imageCV3.get(i, j+1<imageCV3.cols()?j+1:j,pixelE);
+				imageCV3.get(i, j-1<0?j:j-1,pixelW);
+				if(type==GradientType.Grey)
+				{
+					double[] N=new double[]{(pixelN[0]+pixelN[1]+pixelN[2])/3,(pixelN[0]+pixelN[1]+pixelN[2])/3,(pixelN[0]+pixelN[1]+pixelN[2])/3};
+					double[] S=new double[]{(pixelS[0]+pixelS[1]+pixelS[2])/3,(pixelS[0]+pixelS[1]+pixelS[2])/3,(pixelS[0]+pixelS[1]+pixelS[2])/3};
+					double[] E=new double[]{(pixelE[0]+pixelE[1]+pixelE[2])/3,(pixelE[0]+pixelE[1]+pixelE[2])/3,(pixelE[0]+pixelE[1]+pixelE[2])/3};
+					double[] W=new double[]{(pixelW[0]+pixelW[1]+pixelW[2])/3,(pixelW[0]+pixelW[1]+pixelW[2])/3,(pixelW[0]+pixelW[1]+pixelW[2])/3};
+					double ddB=Math.sqrt((E[0]-W[0])*(E[0]-W[0])+(N[0]-S[0])*(N[0]-S[0]));
+					if(ddB>255)ddB=255;
+					greyCol[0]=ddB;
+					greyCol[1]=ddB;
+					greyCol[2]=ddB;
+					imageCV4.put(i, j, greyCol);					
+				}
+				else
+				{
+					dx=pixelE[0]-pixelW[0];
+					dy=pixelN[0]-pixelS[0];
+					dB=(int)Math.sqrt(dx*dx+dy*dy);				
+					int dG=(int)Math.sqrt((pixelE[1]-pixelW[1])*(pixelE[1]-pixelW[1])+((pixelN[1]-pixelS[1])*(pixelN[1]-pixelS[1])));
+					int dR=(int)Math.sqrt((pixelE[2]-pixelW[2])*(pixelE[2]-pixelW[2])+((pixelN[2]-pixelS[2])*(pixelN[2]-pixelS[2])));
+					if(dB>255)dB=255;
+					if(dG>255)dG=255;
+					if(dR>255)dR=255;
+					if(type==GradientType.B)
+					{
+						dG=0;dR=0;
+					}
+					else if(type==GradientType.R)
+					{
+						dB=0;dG=0;
+					}
+					else if(type==GradientType.G)
+					{
+						dB=0;
+						dR=0;
+					}					
+					color[0]=dB;
+					color[1]=dG;
+					color[2]=dR;
+					imageCV4.put(i, j, color);
+				}
+								
+			}
+		}
+	}
+	public static void Normal(Mat image,Mat resultat,GradientType type)
+	{
+		int rows=image.rows();
+		int cols=image.cols();
+		double[] color=new double[3];
+		double[] greyCol=new double[3];
+		byte[] pixelNE=new byte[3];
+		byte[] pixelSW=new byte[3];
+		byte[] pixelNW=new byte[3];
+		byte[] pixelSE=new byte[3];
+		double dB,dR,dG;
+		for(int i=0;i<rows;i++)
+		{
+			for(int j=0;j<cols;j++)
+			{
+				//
+				if(i-1<0 && j+1>cols)image.get(i, j,pixelNE);
+				else image.get(i-1, j+1,pixelNE);
+				if(i-1<0 && j-1<0)image.get(i, j,pixelNW);
+				else image.get(i-1, j-1,pixelNW);
+				if(i+1>rows && j+1>cols)image.get(i, j,pixelSE);
+				else image.get(i+1, j+1,pixelSE);
+				if(i+1>rows && j-1<0)image.get(i, j,pixelSW);
+				else image.get(i+1, j-1,pixelSW);				
+				if(type==GradientType.Grey)
+				{
+					double[] NE=new double[]{(pixelNE[0]+pixelNE[1]+pixelNE[2])/3,(pixelNE[0]+pixelNE[1]+pixelNE[2])/3,(pixelNE[0]+pixelNE[1]+pixelNE[2])/3};
+					double[] SE=new double[]{(pixelSE[0]+pixelSE[1]+pixelSE[2])/3,(pixelSE[0]+pixelSE[1]+pixelSE[2])/3,(pixelSE[0]+pixelSE[1]+pixelSE[2])/3};
+					double[] NW=new double[]{(pixelNW[0]+pixelNW[1]+pixelNW[2])/3,(pixelNW[0]+pixelNW[1]+pixelNW[2])/3,(pixelNW[0]+pixelNW[1]+pixelNW[2])/3};
+					double[] SW=new double[]{(pixelSW[0]+pixelSW[1]+pixelSW[2])/3,(pixelSW[0]+pixelSW[1]+pixelSW[2])/3,(pixelSW[0]+pixelSW[1]+pixelSW[2])/3};
+					double ddB=Math.abs(Math.atan2(SE[0]-NW[0], SW[0]-NE[0])*255);
+					if(ddB>255)ddB=255;
+					greyCol[0]=ddB;
+					greyCol[1]=ddB;
+					greyCol[2]=ddB;
+					resultat.put(i, j, greyCol);					
+				}
+				else
+				{									
+					dB=Math.abs(Math.atan2(pixelSE[0]-pixelNW[0], pixelSW[0]-pixelNE[0])*255) ;
+					dR=Math.abs(Math.atan2(pixelSE[2]-pixelNW[2], pixelSW[2]-pixelNE[2])*255);//
+					dG=Math.abs(Math.atan2(pixelSE[1]-pixelNW[1], pixelSW[1]-pixelNE[1])*255);//
+					if(type==GradientType.B)
+					{
+						dG=0;dR=0;
+					}
+					else if(type==GradientType.R)
+					{
+						dB=0;dG=0;
+					}
+					else if(type==GradientType.G)
+					{
+						dB=0;
+						dR=0;
+					}					
+					color[0]=dB;
+					color[1]=dG;
+					color[2]=dR;
+					resultat.put(i, j, color);
+				}
+			}
+		}
+		
+	}
+	public static BufferedImage cvToJava(Mat m)
+	{
+		int bufferSize=m.cols()*m.rows()*m.channels();
+		BufferedImage image=new BufferedImage(m.cols(),m.rows(), BufferedImage.TYPE_3BYTE_BGR);
+		byte[] data=new byte[bufferSize];
+		byte[] dataDest=((DataBufferByte)image.getRaster().getDataBuffer()).getData();
+		m.get(0, 0, data);
+		System.arraycopy(data, 0, dataDest, 0, bufferSize);
+		return image;
+	}
+	public static Mat javaToCv(BufferedImage image)
+	{
+		Mat m=new Mat(image.getHeight(),image.getWidth(),CvType.CV_8UC3);
+		int bufferSize=image.getHeight()*image.getWidth()*3;
+		byte[] data=((DataBufferByte)image.getRaster().getDataBuffer()).getData();
+		byte[] dataDest=new byte[image.getHeight()*image.getWidth()*3];
+		System.arraycopy(data, 0, dataDest, 0, bufferSize);
+		m.put(0, 0, dataDest);
+		return m;
 	}
 }
