@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
+import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
 public class ExternProcess 
@@ -164,62 +165,78 @@ public class ExternProcess
 		}
 		return inv_cumul.get(tempHash.get(temp[0]));
 	}
+	public static void gaussianTiles(Mat m,double size,double sigmaX)
+	{
+		//Mat newM=new Mat(m.rows(),m.cols(),CvType.CV_8UC3);
+		Imgproc.GaussianBlur(m, m, new Size(size, size), sigmaX);
+		//return newM;
+	}
 	public static void regularizeSVBRDF(Mat[][] f1,Mat[][]f2,int tileLenH,int tileLenW,int hauteur)
 	{
 		//f1 et f2 doivent être initialisé avant
-		int[][] temp=new int[hauteur*hauteur][3];
-		int index=0;
-		byte[] pixel=new byte[3];
-		for(int i=0;i<tileLenH;i++)
+		try
 		{
-			//parcours tous les tiles
-			for(int j=0;j<tileLenW;j++)
+			int[][] temp=new int[hauteur*hauteur][3];
+			int index=0;
+			byte[] pixel=new byte[3];
+			for(int i=0;i<tileLenH;i++)
 			{
-				
-				for(int row=0;row<hauteur;row++)
-				{
-					//parcours tous les pixels du tile
-					for(int col=0;col<hauteur;col++)
+				//parcours tous les tiles
+				for(int j=0;j<tileLenW;j++)
+				{					
+					for(int row=0;row<hauteur;row++)
 					{
-						f1[i][j].get(row, col,pixel);
-						if(index==hauteur*hauteur)continue;
-						temp[index][0]+=byteColorCVtoIntJava(pixel[0]);
-						temp[index][1]+=byteColorCVtoIntJava(pixel[1]);
-						temp[index][2]+=byteColorCVtoIntJava(pixel[2]);
-						
-						index++;
-						
-					}
-					
-				}
-				
+						//parcours tous les pixels du tile
+						for(int col=0;col<hauteur;col++)
+						{
+							f1[i][j].get(row, col,pixel);
+							if(index==hauteur*hauteur)continue;
+							temp[index][0]+=byteColorCVtoIntJava(pixel[0]);
+							temp[index][1]+=byteColorCVtoIntJava(pixel[1]);
+							temp[index][2]+=byteColorCVtoIntJava(pixel[2]);						
+							index++;						
+						}					
+					}	
+					index=0;
+				}				
 			}
-			
+			System.out.println("A");
 			index=0;
-		}
-		System.out.println("A");
-		//on va faire l'inverse pour créer f2
-		for(int i=0;i<tileLenH;i++)
-		{
-			//parcours tous les tiles
-			for(int j=0;j<tileLenW;j++)
+			//on va faire l'inverse pour créer f2
+			for(int i=0;i<tileLenH;i++)
 			{
-				for(int row=0;row<hauteur;row++)
+				//parcours tous les tiles
+				for(int j=0;j<tileLenW;j++)
 				{
-					//parcours tous les pixels du tile
-					for(int col=0;col<hauteur;col++)
-					{		
-						if(index==hauteur*hauteur)continue;
-						int B=temp[index][0]/(tileLenH*tileLenW);
-						int G=temp[index][1]/(tileLenH*tileLenW);
-						int R=temp[index][2]/(tileLenH*tileLenW);
-						pixel=new byte[]{(byte)B,(byte)G,(byte)R};
-						f2[i][j].put(row, col, pixel);
-						index++;
+					for(int row=0;row<hauteur;row++)
+					{
+						//parcours tous les pixels du tile
+						for(int col=0;col<hauteur;col++)
+						{		
+							if(index==hauteur*hauteur)continue;
+							double B=(temp[index][0]/(double)(tileLenH*tileLenW))*0.3*Math.cos(1);
+							double G=(temp[index][1]/(double)(tileLenH*tileLenW))*0.3*Math.cos(1);
+							double R=(temp[index][2]/(double)(tileLenH*tileLenW))*0.3*Math.cos(1);
+							/*int B=(temp[index][0]/(tileLenH*tileLenW));
+							int G=temp[index][1]/(tileLenH*tileLenW);
+							int R=temp[index][2]/(tileLenH*tileLenW);*/
+							pixel=new byte[]{(byte)B,(byte)G,(byte)R};
+							//pixel=new byte[]{(byte)0,(byte)0,(byte)255};
+							f2[i][j].put(row, col, pixel);
+							index++;
+						}
 					}
-				}
+					index=0;
+				}				
 			}
-			index=0;
+			gaussianTiles(f2[0][0], 3.0, 1);
+			gaussianTiles(f2[0][1], 3.0, 1);
+			gaussianTiles(f2[0][2], 3.0, 1);
 		}
+		catch(Exception e)
+		{
+			System.err.println("Regularize erreur:"+e.getMessage());
+		}
+		
 	}
 }

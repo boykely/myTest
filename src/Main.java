@@ -45,19 +45,19 @@ public class Main
 					BufferedImage sourceI=ImageIO.read(new File("C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\Nouveau dossier\\source"+j+".jpg"));
 					f1[i][j]=convertTileToCV(image);//tiles après brief
 					source[i][j]=convertTileToCV(sourceI);//utile seulement pour la texture matching
-					f2[i][j]=new Mat(192,192,CvType.CV_8UC3);
+					f2[i][j]=new Mat(192,192,CvType.CV_8UC3);					
 					//gaussianTiles(f1[i][j],3.0,1);
 					//ExternProcess.TextureMatching(source[i][j], f1[i][j], f1[i][j], 6);
-					//saveTile(f1[i][j], "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\Nouveau dossier\\source_relitM"+j+".jpg");
+					//saveTile(f1[i][j], "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\Nouveau dossier\\source_relitTexture"+j+".jpg");
 				}
 			}
 			ExternProcess.regularizeSVBRDF(f1, f2, 1, 3, 192);
 			ExternProcess.TextureMatching(source[0][0], f2[0][0], f2[0][0], 6);
 			ExternProcess.TextureMatching(source[0][1], f2[0][1], f2[0][1], 6);
 			ExternProcess.TextureMatching(source[0][2], f2[0][2], f2[0][2], 6);
-			saveTile(f2[0][0], "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\Nouveau dossier\\sourceBRDF0.jpg");
-			saveTile(f2[0][1], "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\Nouveau dossier\\sourceBRDF1.jpg");
-			saveTile(f2[0][2], "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\Nouveau dossier\\sourceBRDF2.jpg");
+			saveTile(f2[0][0], "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\Nouveau dossier\\sourceBRDFLambert0.jpg");
+			saveTile(f2[0][1], "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\Nouveau dossier\\sourceBRDFLambert1.jpg");
+			saveTile(f2[0][2], "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\Nouveau dossier\\sourceBRDFLambert2.jpg");
 			System.out.println("fin");
 		}
 		catch(Exception e)
