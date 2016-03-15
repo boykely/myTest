@@ -314,7 +314,7 @@ public class ExternProcess
 		}
 	}
 	public static void Normal(Mat image,Mat resultat,GradientType type)
-	{
+	{		
 		int rows=image.rows();
 		int cols=image.cols();
 		double[] color=new double[3];
@@ -349,6 +349,19 @@ public class ExternProcess
 					greyCol[1]=ddB;
 					greyCol[2]=ddB;
 					resultat.put(i, j, greyCol);					
+				}
+				else if(type==GradientType.RGB)
+				{					
+					double ddB=Math.abs(Math.atan2(byteColorCVtoIntJava(pixelSE[0])-byteColorCVtoIntJava(pixelNE[0]),byteColorCVtoIntJava(pixelSW[0])-byteColorCVtoIntJava(pixelNW[0]))*255);
+					double ddG=Math.abs(Math.atan2(byteColorCVtoIntJava(pixelSE[1])-byteColorCVtoIntJava(pixelNE[1]),byteColorCVtoIntJava(pixelSW[1])-byteColorCVtoIntJava(pixelNW[1]))*255);
+					double ddR=Math.abs(Math.atan2(byteColorCVtoIntJava(pixelSE[2])-byteColorCVtoIntJava(pixelNE[2]),byteColorCVtoIntJava(pixelSW[2])-byteColorCVtoIntJava(pixelNW[2]))*255);
+					if(ddB>255)ddB=255;
+					if(ddR>255)ddR=255;
+					if(ddG>255)ddG=255;
+					greyCol[0]=ddB;
+					greyCol[1]=ddG;
+					greyCol[2]=ddR;
+					resultat.put(i, j, greyCol);
 				}
 				else
 				{									
@@ -396,5 +409,16 @@ public class ExternProcess
 		System.arraycopy(data, 0, dataDest, 0, bufferSize);
 		m.put(0, 0, dataDest);
 		return m;
+	}
+	public static double[] ChangeBase(double x,double y,double z,int[] centreP)
+	{            
+		double[] res = new double[3];      
+		double[] u =new double[]{1,0,0};
+		double[] v=new double[]{0,-1,0};//on met un signe - car les 2 répère n'ont pas les mêmes sens
+		double[] w=new double[]{0,0,1};
+	    res[0] = u[0] * x + centreP[0];
+	    res[1] = v[1] * y + centreP[1];
+	    res[2]=  w[2] * z+centreP[2];
+	    return res;
 	}
 }
