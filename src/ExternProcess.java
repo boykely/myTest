@@ -315,80 +315,86 @@ public class ExternProcess
 	}
 	public static void Normal(Mat image,Mat resultat,GradientType type)
 	{		
-		int rows=image.rows();
-		int cols=image.cols();
-		double[] color=new double[3];
-		double[] greyCol=new double[3];
-		byte[] pixelNE=new byte[3];
-		byte[] pixelSW=new byte[3];
-		byte[] pixelNW=new byte[3];
-		byte[] pixelSE=new byte[3];
-		double dB,dR,dG;
-		for(int i=0;i<rows;i++)
+		try
 		{
-			for(int j=0;j<cols;j++)
+			int rows=image.rows();
+			int cols=image.cols();
+			double[] color=new double[3];
+			double[] greyCol=new double[3];
+			byte[] pixelNE=new byte[3];
+			byte[] pixelSW=new byte[3];
+			byte[] pixelNW=new byte[3];
+			byte[] pixelSE=new byte[3];
+			double dB,dR,dG;
+			for(int i=0;i<rows;i++)
 			{
-				//
-				if(i-1<0 && j+1>cols)image.get(i, j,pixelNE);
-				else image.get(i-1, j+1,pixelNE);
-				if(i-1<0 && j-1<0)image.get(i, j,pixelNW);
-				else image.get(i-1, j-1,pixelNW);
-				if(i+1>rows && j+1>cols)image.get(i, j,pixelSE);
-				else image.get(i+1, j+1,pixelSE);
-				if(i+1>rows && j-1<0)image.get(i, j,pixelSW);
-				else image.get(i+1, j-1,pixelSW);				
-				if(type==GradientType.Grey)
+				for(int j=0;j<cols;j++)
 				{
-					double[] NE=new double[]{(pixelNE[0]+pixelNE[1]+pixelNE[2])/3,(pixelNE[0]+pixelNE[1]+pixelNE[2])/3,(pixelNE[0]+pixelNE[1]+pixelNE[2])/3};
-					double[] SE=new double[]{(pixelSE[0]+pixelSE[1]+pixelSE[2])/3,(pixelSE[0]+pixelSE[1]+pixelSE[2])/3,(pixelSE[0]+pixelSE[1]+pixelSE[2])/3};
-					double[] NW=new double[]{(pixelNW[0]+pixelNW[1]+pixelNW[2])/3,(pixelNW[0]+pixelNW[1]+pixelNW[2])/3,(pixelNW[0]+pixelNW[1]+pixelNW[2])/3};
-					double[] SW=new double[]{(pixelSW[0]+pixelSW[1]+pixelSW[2])/3,(pixelSW[0]+pixelSW[1]+pixelSW[2])/3,(pixelSW[0]+pixelSW[1]+pixelSW[2])/3};
-					double ddB=Math.abs(Math.atan2(SE[0]-NW[0], SW[0]-NE[0])*255);
-					if(ddB>255)ddB=255;
-					greyCol[0]=ddB;
-					greyCol[1]=ddB;
-					greyCol[2]=ddB;
-					resultat.put(i, j, greyCol);					
-				}
-				else if(type==GradientType.RGB)
-				{					
-					double ddB=Math.abs(Math.atan2(byteColorCVtoIntJava(pixelSE[0])-byteColorCVtoIntJava(pixelNE[0]),byteColorCVtoIntJava(pixelSW[0])-byteColorCVtoIntJava(pixelNW[0]))*255);
-					double ddG=Math.abs(Math.atan2(byteColorCVtoIntJava(pixelSE[1])-byteColorCVtoIntJava(pixelNE[1]),byteColorCVtoIntJava(pixelSW[1])-byteColorCVtoIntJava(pixelNW[1]))*255);
-					double ddR=Math.abs(Math.atan2(byteColorCVtoIntJava(pixelSE[2])-byteColorCVtoIntJava(pixelNE[2]),byteColorCVtoIntJava(pixelSW[2])-byteColorCVtoIntJava(pixelNW[2]))*255);
-					if(ddB>255)ddB=255;
-					if(ddR>255)ddR=255;
-					if(ddG>255)ddG=255;
-					greyCol[0]=ddB;
-					greyCol[1]=ddG;
-					greyCol[2]=ddR;
-					resultat.put(i, j, greyCol);
-				}
-				else
-				{									
-					dB=Math.abs(Math.atan2(pixelSE[0]-pixelNW[0], pixelSW[0]-pixelNE[0])*255) ;
-					dR=Math.abs(Math.atan2(pixelSE[2]-pixelNW[2], pixelSW[2]-pixelNE[2])*255);//
-					dG=Math.abs(Math.atan2(pixelSE[1]-pixelNW[1], pixelSW[1]-pixelNE[1])*255);//
-					if(type==GradientType.B)
+					//
+					if(i-1<0 && j+1>cols)image.get(i, j,pixelNE);
+					else image.get(i-1, j+1,pixelNE);
+					if(i-1<0 && j-1<0)image.get(i, j,pixelNW);
+					else image.get(i-1, j-1,pixelNW);
+					if(i+1>rows && j+1>cols)image.get(i, j,pixelSE);
+					else image.get(i+1, j+1,pixelSE);
+					if(i+1>rows && j-1<0)image.get(i, j,pixelSW);
+					else image.get(i+1, j-1,pixelSW);				
+					if(type==GradientType.Grey)
 					{
-						dG=0;dR=0;
+						double[] NE=new double[]{(pixelNE[0]+pixelNE[1]+pixelNE[2])/3,(pixelNE[0]+pixelNE[1]+pixelNE[2])/3,(pixelNE[0]+pixelNE[1]+pixelNE[2])/3};
+						double[] SE=new double[]{(pixelSE[0]+pixelSE[1]+pixelSE[2])/3,(pixelSE[0]+pixelSE[1]+pixelSE[2])/3,(pixelSE[0]+pixelSE[1]+pixelSE[2])/3};
+						double[] NW=new double[]{(pixelNW[0]+pixelNW[1]+pixelNW[2])/3,(pixelNW[0]+pixelNW[1]+pixelNW[2])/3,(pixelNW[0]+pixelNW[1]+pixelNW[2])/3};
+						double[] SW=new double[]{(pixelSW[0]+pixelSW[1]+pixelSW[2])/3,(pixelSW[0]+pixelSW[1]+pixelSW[2])/3,(pixelSW[0]+pixelSW[1]+pixelSW[2])/3};
+						double ddB=Math.abs(Math.atan2(SE[0]-NW[0], SW[0]-NE[0])*255);
+						if(ddB>255)ddB=255;
+						greyCol[0]=ddB;
+						greyCol[1]=ddB;
+						greyCol[2]=ddB;
+						resultat.put(i, j, greyCol);					
 					}
-					else if(type==GradientType.R)
-					{
-						dB=0;dG=0;
+					else if(type==GradientType.RGB)
+					{					
+						double ddB=Math.abs(Math.atan2(byteColorCVtoIntJava(pixelSE[0])-byteColorCVtoIntJava(pixelNE[0]),byteColorCVtoIntJava(pixelSW[0])-byteColorCVtoIntJava(pixelNW[0]))*255);
+						double ddG=Math.abs(Math.atan2(byteColorCVtoIntJava(pixelSE[1])-byteColorCVtoIntJava(pixelNE[1]),byteColorCVtoIntJava(pixelSW[1])-byteColorCVtoIntJava(pixelNW[1]))*255);
+						double ddR=Math.abs(Math.atan2(byteColorCVtoIntJava(pixelSE[2])-byteColorCVtoIntJava(pixelNE[2]),byteColorCVtoIntJava(pixelSW[2])-byteColorCVtoIntJava(pixelNW[2]))*255);
+						if(ddB>255)ddB=255;
+						if(ddR>255)ddR=255;
+						if(ddG>255)ddG=255;
+						greyCol[0]=ddB;
+						greyCol[1]=ddG;
+						greyCol[2]=ddR;
+						resultat.put(i, j, greyCol);
 					}
-					else if(type==GradientType.G)
-					{
-						dB=0;
-						dR=0;
-					}					
-					color[0]=dB;
-					color[1]=dG;
-					color[2]=dR;
-					resultat.put(i, j, color);
+					else
+					{									
+						dB=Math.abs(Math.atan2(pixelSE[0]-pixelNW[0], pixelSW[0]-pixelNE[0])*255) ;
+						dR=Math.abs(Math.atan2(pixelSE[2]-pixelNW[2], pixelSW[2]-pixelNE[2])*255);//
+						dG=Math.abs(Math.atan2(pixelSE[1]-pixelNW[1], pixelSW[1]-pixelNE[1])*255);//
+						if(type==GradientType.B)
+						{
+							dG=0;dR=0;
+						}
+						else if(type==GradientType.R)
+						{
+							dB=0;dG=0;
+						}
+						else if(type==GradientType.G)
+						{
+							dB=0;
+							dR=0;
+						}					
+						color[0]=dB;
+						color[1]=dG;
+						color[2]=dR;
+						resultat.put(i, j, color);
+					}
 				}
-			}
+			}	
 		}
-		
+		catch(Exception e)
+		{
+			System.out.println(e.getMessage());
+		}		
 	}
 	public static BufferedImage cvToJava(Mat m)
 	{

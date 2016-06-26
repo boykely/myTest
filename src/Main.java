@@ -3,12 +3,17 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.StringReader;
 import java.nio.Buffer;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Random;
@@ -23,48 +28,361 @@ import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.imgcodecs.Imgcodecs;
+import org.ejml.data.DenseMatrix64F;
+import org.ejml.simple.SimpleMatrix;
 import org.opencv.core.*;
 import org.opencv.imgproc.*;
 
+
 public class Main 
 {
+	public static enum GradientType
+	{
+		R,G,B,RGB,Grey,RG
+	}
+	public static void Normal(Mat image,Mat resultat,GradientType type)
+	{		
+		try
+		{
+			int rows=image.rows();
+			int cols=image.cols();
+			double[] color=new double[3];
+			double[] greyCol=new double[3];
+			byte[] pixelNE=new byte[3];
+			byte[] pixelSW=new byte[3];
+			byte[] pixelNW=new byte[3];
+			byte[] pixelSE=new byte[3];
+			double dB,dR,dG;
+			for(int i=0;i<rows;i++)
+			{
+				for(int j=0;j<cols;j++)
+				{
+					//
+					if(i-1>=0 && j+1<cols)
+					{
+						image.get(i-1, j+1,pixelNE);
+					}
+					else
+					{
+						image.get(i, j,pixelNE);
+					}
+					if(i-1>=0 && j-1>=0)image.get(i-1, j-1,pixelNW);
+					else image.get(i, j,pixelNW);
+					if(i+1<rows && j+1<cols)image.get(i+1, j+1,pixelSE);
+					else image.get(i, j,pixelSE);
+					if(i+1<rows && j-1<=0)image.get(i+1, j-1,pixelSW);
+					else image.get(i, j,pixelSW);				
+					if(type==GradientType.Grey)
+					{
+						double[] NE=new double[]{(pixelNE[0]+pixelNE[1]+pixelNE[2])/3,(pixelNE[0]+pixelNE[1]+pixelNE[2])/3,(pixelNE[0]+pixelNE[1]+pixelNE[2])/3};
+						double[] SE=new double[]{(pixelSE[0]+pixelSE[1]+pixelSE[2])/3,(pixelSE[0]+pixelSE[1]+pixelSE[2])/3,(pixelSE[0]+pixelSE[1]+pixelSE[2])/3};
+						double[] NW=new double[]{(pixelNW[0]+pixelNW[1]+pixelNW[2])/3,(pixelNW[0]+pixelNW[1]+pixelNW[2])/3,(pixelNW[0]+pixelNW[1]+pixelNW[2])/3};
+						double[] SW=new double[]{(pixelSW[0]+pixelSW[1]+pixelSW[2])/3,(pixelSW[0]+pixelSW[1]+pixelSW[2])/3,(pixelSW[0]+pixelSW[1]+pixelSW[2])/3};
+						double ddB=Math.abs(Math.atan2(SE[0]-NW[0], SW[0]-NE[0])*255);
+						if(ddB>255)ddB=255;
+						greyCol[0]=ddB;
+						greyCol[1]=ddB;
+						greyCol[2]=ddB;
+						resultat.put(i, j, greyCol);					
+					}
+					else if(type==GradientType.RGB)
+					{					
+						double ddB=Math.abs(Math.atan2(pixelSE[0]-pixelNW[0],pixelSW[0]-pixelNE[0])*255);//(byteColorCVtoIntJava(pixelSE[0])-byteColorCVtoIntJava(pixelNW[0]),byteColorCVtoIntJava(pixelSW[0])-byteColorCVtoIntJava(pixelNE[0]))*255);
+						double ddG=Math.abs(Math.atan2(pixelSE[1]-pixelNW[1],pixelSW[1]-pixelNE[1])*255);//(Math.atan2(byteColorCVtoIntJava(pixelSE[1])-byteColorCVtoIntJava(pixelNW[1]),byteColorCVtoIntJava(pixelSW[1])-byteColorCVtoIntJava(pixelNE[1]))*255);
+						double ddR=Math.abs(Math.atan2(pixelSE[2]-pixelNW[2],pixelSW[2]-pixelNE[2])*255);//(Math.atan2(byteColorCVtoIntJava(pixelSE[2])-byteColorCVtoIntJava(pixelNW[2]),byteColorCVtoIntJava(pixelSW[2])-byteColorCVtoIntJava(pixelNE[2]))*255);
+						if(ddB>255)ddB=255;
+						if(ddR>255)ddR=255;
+						if(ddG>255)ddG=255;
+						greyCol[0]=ddB;
+						greyCol[1]=ddG;
+						greyCol[2]=ddR;
+						resultat.put(i, j, greyCol);
+					}
+					else
+					{									
+						dB=Math.abs(Math.atan2(pixelSE[0]-pixelNW[0], pixelSW[0]-pixelNE[0])*255) ;
+						dR=Math.abs(Math.atan2(pixelSE[2]-pixelNW[2], pixelSW[2]-pixelNE[2])*255);//
+						dG=Math.abs(Math.atan2(pixelSE[1]-pixelNW[1], pixelSW[1]-pixelNE[1])*255);//
+						if(type==GradientType.B)
+						{
+							dG=0;dR=0;
+						}
+						else if(type==GradientType.R)
+						{
+							dB=0;dG=0;
+						}
+						else if(type==GradientType.G)
+						{
+							dB=0;
+							dR=0;
+						}
+						else if(type==GradientType.RG)
+						{
+							dB=0;
+						}
+						color[0]=dB;
+						color[1]=dG;
+						color[2]=dR;
+						resultat.put(i, j, color);
+					}
+				}
+			}	
+		}
+		catch(Exception e)
+		{
+			System.out.println("Pb"+e.getMessage());
+		}		
+	}
 	public static int gl=0;
 	public static void main(String[] args)
 	{
-		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);		
+		
+		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 		try
 		{
-			Mat[][] f1=new Mat[1][3];
-			Mat[][] f2=new Mat[1][3];
-			Mat[][] source=new Mat[1][3];
-			for(int i=0;i<1;i++)
+			
+			String dir="C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\SampleTransportReflectance\\Final\\";//"C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\";
+			String path="TF_";
+			Color av=AverageColor(dir+"flash.jpg");
+			//BufferedImage[][] tiles=new BufferedImage[12][16];
+			int tileWNumber=17;
+			int tileHNumber=12;
+			int rows=tileHNumber*192;
+			int cols=tileWNumber*192;
+			int brdfEstimation=tileWNumber*tileHNumber;
+			
+			
+			int originS=0;
+			int originT=0;
+			double[] cam=(ChangeBase(new double[]{0,0,1}));
+			double[] lum=(ChangeBase(new double[]{0,0,1}));
+			double[] E=new double[3];
+			double[] L=new double[3];
+			double[] H=new double[3];
+			double D2;
+			Mat image=new Mat(rows,cols,CvType.CV_8UC3);
+			System.out.println("Start!!");
+			Mat normalR=Imgcodecs.imread(dir+"normal.jpg");
+			System.out.println("ok");
+			System.out.println(normalR);
+			//Mat diffuse=Imgcodecs.imread("C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\SampleTransportReflectance\\Final\\render ros=0.jpg");
+			//Mat spec=Imgcodecs.imread("C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\SampleTransportReflectance\\Final\\render rod=0.jpg");
+			for(int i=0;i<tileHNumber;i++)
 			{
-				for(int j=0;j<3;j++)
+				for(int j=0;j<tileWNumber;j++)
 				{
-					BufferedImage image=ImageIO.read(new File("C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\Nouveau dossier\\"+j+".jpg"));
-					BufferedImage sourceI=ImageIO.read(new File("C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\Nouveau dossier\\source"+j+".jpg"));
-					f1[i][j]=convertTileToCV(image);//tiles après brief
-					source[i][j]=convertTileToCV(sourceI);//utile seulement pour la texture matching
-					f2[i][j]=new Mat(192,192,CvType.CV_8UC3);					
-					//gaussianTiles(f1[i][j],3.0,1);
-					//ExternProcess.TextureMatching(source[i][j], f1[i][j], f1[i][j], 6);
-					ExternProcess.Normal(f1[i][j], f2[i][j],ExternProcess.GradientType.B);
-					saveTile(f2[i][j], "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\Nouveau dossier\\source_normal"+j+".jpg");
+					FileReader fileB=new FileReader(dir+"testB.txt");
+					FileReader fileG=new FileReader(dir+"testG.txt");
+					FileReader fileR=new FileReader(dir+"testR.txt");
+					byte[] normal=new byte[3];
+					byte[] diff=new byte[3];
+					byte[] sp=new byte[3];
+					BufferedReader readerB=new BufferedReader(fileB);
+					BufferedReader readerG=new BufferedReader(fileG);
+					BufferedReader readerR=new BufferedReader(fileR);
+					String lb=readerB.readLine();
+					String lg=readerG.readLine();
+					String lr=readerR.readLine();
+					for(int s=0;s<192;s++)
+					{
+						for(int t=0;t<192;t++)
+						{
+							String[] brdfParamB=lb.split("//");
+							String[] brdfParamG=lg.split("//");
+							String[] brdfParamR=lr.split("//");
+							originS=s+192*i;
+							originT=t+192*j;
+							double[] pos=(new double[]{originS,originT,0});
+							E=normalize(XY(pos,cam));
+							L=calculeL(pos, lum);
+							double[] le=addXY(L,E);
+							H=normalize(le);
+							double[] EP=XY(pos,cam);
+							D2=dot(L,L);
+							normalR.get(originS, originT,normal);
+							//diffuse.get(originS, originT, diff);
+							//spec.get(originS, originT, sp);
+							/*double blue=color(byteColorCVtoIntJava(diff[0]),byteColorCVtoIntJava(sp[0]),pos,E,L,H,D2,byteColorCVtoIntJava(normal[2]),byteColorCVtoIntJava(normal[1]),byteColorCVtoIntJava(normal[0]),av,Math.abs(Double.parseDouble(brdfParamB[0])),Math.abs(Double.parseDouble(brdfParamB[1])),Math.abs(Double.parseDouble(brdfParamB[8])));
+							double green=color(byteColorCVtoIntJava(diff[1]),byteColorCVtoIntJava(sp[1]),pos,E,L,H,D2,byteColorCVtoIntJava(normal[2]),byteColorCVtoIntJava(normal[1]),byteColorCVtoIntJava(normal[0]),av,Math.abs(Double.parseDouble(brdfParamG[0])),Math.abs(Double.parseDouble(brdfParamG[1])),Math.abs(Double.parseDouble(brdfParamG[8])));
+							double red=color(byteColorCVtoIntJava(diff[2]),byteColorCVtoIntJava(sp[2]),pos,E,L,H,D2,byteColorCVtoIntJava(normal[2]),byteColorCVtoIntJava(normal[1]),byteColorCVtoIntJava(normal[0]),av,Math.abs(Double.parseDouble(brdfParamR[0])),Math.abs(Double.parseDouble(brdfParamR[1])),Math.abs(Double.parseDouble(brdfParamR[8])));*/
+							/*double blue=color(av.getBlue(),av.getBlue(),pos,E,L,H,D2,byteColorCVtoIntJava(normal[2]),byteColorCVtoIntJava(normal[1]),byteColorCVtoIntJava(normal[0]),av,Math.abs(Double.parseDouble(brdfParamB[0])),Math.abs(Double.parseDouble(brdfParamB[1])),Math.abs(Double.parseDouble(brdfParamB[8])));
+							double green=color(av.getGreen(),av.getGreen(),pos,E,L,H,D2,byteColorCVtoIntJava(normal[2]),byteColorCVtoIntJava(normal[1]),byteColorCVtoIntJava(normal[0]),av,Math.abs(Double.parseDouble(brdfParamG[0])),Math.abs(Double.parseDouble(brdfParamG[1])),Math.abs(Double.parseDouble(brdfParamG[8])));
+							double red=color(av.getRed(),av.getRed(),pos,E,L,H,D2,byteColorCVtoIntJava(normal[2]),byteColorCVtoIntJava(normal[1]),byteColorCVtoIntJava(normal[0]),av,Math.abs(Double.parseDouble(brdfParamR[0])),Math.abs(Double.parseDouble(brdfParamR[1])),Math.abs(Double.parseDouble(brdfParamR[8])));*/
+							double blue=color(av.getBlue(),av.getBlue(),pos,E,L,H,D2,Double.parseDouble(brdfParamB[5]),Double.parseDouble(brdfParamB[6]),2,av,Math.abs(Double.parseDouble(brdfParamB[0])),Math.abs(Double.parseDouble(brdfParamB[1])),Math.abs(Double.parseDouble(brdfParamB[8])));
+							double green=color(av.getGreen(),av.getGreen(),pos,E,L,H,D2,Double.parseDouble(brdfParamG[5]),Double.parseDouble(brdfParamG[6]),2,av,Math.abs(Double.parseDouble(brdfParamG[0])),Math.abs(Double.parseDouble(brdfParamG[1])),Math.abs(Double.parseDouble(brdfParamG[8])));
+							double red=color(av.getRed(),av.getRed(),pos,E,L,H,D2,Double.parseDouble(brdfParamR[5]),Double.parseDouble(brdfParamR[6]),2,av,Math.abs(Double.parseDouble(brdfParamR[0])),Math.abs(Double.parseDouble(brdfParamR[1])),Math.abs(Double.parseDouble(brdfParamR[8])));
+							image.put(originS, originT, new byte[]{(byte)(blue),(byte)(green),(byte)(red)});
+							lb=readerB.readLine();
+							lg=readerG.readLine();
+							lr=readerR.readLine();
+						}
+					}
 				}
 			}
-			/*ExternProcess.regularizeSVBRDF(f1, f2, 1, 3, 192);
-			ExternProcess.TextureMatching(source[0][0], f2[0][0], f2[0][0], 6);
-			ExternProcess.TextureMatching(source[0][1], f2[0][1], f2[0][1], 6);
-			ExternProcess.TextureMatching(source[0][2], f2[0][2], f2[0][2], 6);
-			saveTile(f2[0][0], "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\Nouveau dossier\\sourceBRDFLambert0.jpg");
-			saveTile(f2[0][1], "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\Nouveau dossier\\sourceBRDFLambert1.jpg");
-			saveTile(f2[0][2], "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\Nouveau dossier\\sourceBRDFLambert2.jpg");*/
+			System.out.println("save");
+			saveTile(image, dir+"render2.jpg");
 			System.out.println("fin");
 		}
 		catch(Exception e)
 		{
-			System.err.println("Erreur:"+e.getMessage());
+			System.err.println("Erreur general:"+e.getMessage());
+		}		
+	}
+	public static double color(double d,double s,double[] pos,double[] E,double[] L,double[] H,double D2,double nx,double ny,double nz,Color lightColor,double rod,double ros,double alpha)
+	{
+		double value=0;
+		double[] N=normalize(ChangeBase(new double[]{nx,ny,nz}));
+		SimpleMatrix R=new SimpleMatrix(new double[][]{
+			{0,0,N[0]},
+			{0,0,N[1]},
+			{-N[0],-N[1],0}
+		});
+		double[] Hn=normalize(calculeHn(H,N,R));	
+		double[] Hnp=normalize(div(Hn,Hn[2]));
+		SimpleMatrix M=new SimpleMatrix(new double[][]{
+			{lightColor.getRed(),lightColor.getBlue()},
+			{lightColor.getBlue(),lightColor.getGreen()},
+			
+		});
+		
+		double[] HnpW=normalize(calculeHnpW(M,Hnp[0],Hnp[1]));
+		double spec=Math.exp(-Math.pow(dot(new double[]{HnpW[0],HnpW[1]},new double[]{Hnp[0],Hnp[1]}), alpha*0.5));
+		double cosine=Math.max(0, dot(N,L));
+		double F0=0.04;
+		double fres=F0+(1-F0)*Math.pow(1.0-Math.max(0, dot(H,E)), 5.0);
+		spec=spec*fres/F0;
+		//spec=spec*fres/(4*dot(H,L));
+		double v=((spec*ros)+rod)*cosine/D2 ;//on va commenter tous les paramètres mapping => step2_1104_soir
+		//double v=rod*d;//diffuse
+		//double v=Math.max(0, dot(N, L))*d*0.5;
+		v=Math.sqrt(v);
+		value=v>256?255:v<0?0:v;
+		return value;
+	}
+	/*
+	 * Fonction pour la construction (Re-render)
+	 */
+	public static int[] ChangeBase(int[] xyz)
+	{
+	        int[] P = new int[3];
+	        int[] u = new int[] { 1, 0, 0 };
+	        int[] v = new int[] { 0, 1, 0 };
+	        int[] w = new int[] { 0, 0, 1 };
+	        /*
+	        P[0] = u[0] * xyz[0]+(3264) ;
+	        P[1] = v[1] * xyz[1] +(0);
+	        P[2] = w[2]*xyz[2];*/
+	        P[0] = u[0] * xyz[0]+(3263) ;//optimize7
+	        P[1] = v[1] * xyz[1] +(0);
+	        P[2] = w[2]*xyz[2];
+	        return P;
+	 }
+	public static double[] ChangeBase(double[] xyz)
+	{
+		double[] P = new double[3];
+		double[] u = new double[] { 1, 0, 0 };
+		double[] v = new double[] { 0, 1, 0 };
+		double[] w = new double[] { 0, 0, 1 };
+        /*P[0] = u[0] * xyz[0]+(3263) ;
+        P[1] = v[1] * xyz[1] +(0);
+        P[2] = w[2]*xyz[2];*/
+		 P[0] = u[0] * xyz[0]+(3263) ;//optimize7
+	        P[1] = v[1] * xyz[1] +(0);
+	        P[2] = w[2]*xyz[2];
+        return P;
+	}
+	public static int[] XY(int[] x,int[] y)
+	{
+		return new int[]{y[0]-x[0],y[1]-x[1],y[2]-x[2]};
+	}
+	public static double[] XY(double[] x,double[] y)
+	{
+		return new double[]{y[0]-x[0],y[1]-x[1],y[2]-x[2]};
+	}
+	public static double[] normalize(int[] x)
+	{
+		double norm=Math.sqrt(x[0]*x[0]+x[1]*x[1]+x[2]*x[2]);
+		if(norm==0)return new double[3];
+		return new double[]{x[0]/norm,x[1]/norm,x[2]/norm};
+	}
+	public static double[] normalize(double[] x)
+	{
+		double norm=Math.sqrt(x[0]*x[0]+x[1]*x[1]+x[2]*x[2]);
+		return new double[]{x[0]/norm,x[1]/norm,x[2]/norm};
+	}
+	public static double[] calculeL(int[]x,int[]y)
+	{
+		int[] xy=XY(x,y);
+		return normalize(xy);
+	}
+	public static double[] calculeL(double[]x,double[]y)
+	{
+		double[] xy=XY(x,y);
+		return normalize(xy);
+	}
+	public static double[] addXY(double[]x,double[] y)
+	{
+		return new double[]{x[0]+y[0],x[1]+y[1],x[2]+y[2]};
+	}
+	public static double dot(double[] x,double[] y)
+	{
+		if(x.length==2)return x[0]*y[0]+x[1]*y[1];
+		return x[0]*y[0]+x[1]*y[1]+x[2]*y[2];
+	}
+	public static double[] calculeHn(double[] h,double[] n,SimpleMatrix r)
+	{		
+		SimpleMatrix ha=new SimpleMatrix(new double[][]{{h[0]},{h[1]},{h[2]}});
+		SimpleMatrix first=ha.plus(r.mult(ha)).plus(1);
+		SimpleMatrix second=r.mult(r.mult(ha)).mult(new SimpleMatrix(new double[][]{{n[2]+1}}));
+		return first.elementDiv(second).getMatrix().data;		
+	}
+	public static double[] div(double[] xy,double e)
+	{
+		return new double[]{xy[0]/e,xy[1]/e,xy[2]/e};
+	}
+	public static double[] calculeHnpW(SimpleMatrix m,double x,double y)
+	{
+		SimpleMatrix xy=new SimpleMatrix(new double[][]{
+			{x},
+			{y}
+		});
+		SimpleMatrix temp=m.mult(xy);
+		double[] res=temp.getMatrix().data;
+		return new double[]{res[0],res[1],1};
+	}
+	public static Color AverageColor(String path)
+	{
+		Color c=null;
+		int temp;
+		int tempR=0;
+		int tempG=0;
+		int tempB=0;
+		try 
+		{
+			BufferedImage image=ImageIO.read(new File(path));
+			//BufferedImage image=ImageIO.read(new File("C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\book_black_input_flash.jpg"));
+			for(int i=0;i<image.getHeight();i++)
+			{
+				for(int j=0;j<image.getWidth();j++)
+				{
+					temp=image.getRGB(j, i);
+					c=new Color(temp);
+					tempR+=c.getRed();
+					tempG+=c.getGreen();
+					tempB+=c.getBlue();
+				}
+			}
+			tempR/=image.getHeight()*image.getWidth();
+			tempG/=image.getHeight()*image.getWidth();
+			tempB/=image.getHeight()*image.getWidth();
+			c=new Color(tempR,tempG,tempB);
+		} 
+		catch (IOException e) 
+		{
+			// TODO Auto-generated catch block
+			System.out.println("AverageColor erreur:"+e.getMessage());
 		}
+		return c;
 	}
 	
 	public static void saveTile(Mat m,String path)
