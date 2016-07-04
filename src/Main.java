@@ -198,7 +198,7 @@ public class Main
 							double[] le=addXY(L,E);
 							H=normalize(le);
 							double[] EP=XY(pos,cam);
-							D2=dot(L,L);
+							D2=dot(E,E);
 							normalR.get(originS, originT,normal);
 							//diffuse.get(originS, originT, diff);
 							//spec.get(originS, originT, sp);
@@ -220,7 +220,7 @@ public class Main
 				}
 			}
 			System.out.println("save");
-			saveTile(image, dir+"render2.jpg");
+			saveTile(image, dir+"render.jpg");
 			System.out.println("fin");
 		}
 		catch(Exception e)
@@ -247,10 +247,10 @@ public class Main
 		
 		double[] HnpW=normalize(calculeHnpW(M,Hnp[0],Hnp[1]));
 		double spec=Math.exp(-Math.pow(dot(new double[]{HnpW[0],HnpW[1]},new double[]{Hnp[0],Hnp[1]}), alpha*0.5));
-		double cosine=Math.max(0, dot(N,L));
+		double cosine=Math.max(0, dot(N,E));
 		double F0=0.04;
 		double fres=F0+(1-F0)*Math.pow(1.0-Math.max(0, dot(H,E)), 5.0);
-		spec=spec*fres/F0;
+		//spec=spec*fres/F0;
 		//spec=spec*fres/(4*dot(H,L));
 		double v=((spec*ros)+rod)*cosine/D2 ;//on va commenter tous les paramètres mapping => step2_1104_soir
 		//double v=rod*d;//diffuse
