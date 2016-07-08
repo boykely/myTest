@@ -197,7 +197,6 @@ public class Main
 							L=calculeL(pos, lum);
 							double[] le=addXY(L,E);
 							H=normalize(le);
-							double[] EP=XY(pos,cam);
 							D2=dot(E,E);
 							normalR.get(originS, originT,normal);
 							//diffuse.get(originS, originT, diff);
@@ -208,9 +207,9 @@ public class Main
 							/*double blue=color(av.getBlue(),av.getBlue(),pos,E,L,H,D2,byteColorCVtoIntJava(normal[2]),byteColorCVtoIntJava(normal[1]),byteColorCVtoIntJava(normal[0]),av,Math.abs(Double.parseDouble(brdfParamB[0])),Math.abs(Double.parseDouble(brdfParamB[1])),Math.abs(Double.parseDouble(brdfParamB[8])));
 							double green=color(av.getGreen(),av.getGreen(),pos,E,L,H,D2,byteColorCVtoIntJava(normal[2]),byteColorCVtoIntJava(normal[1]),byteColorCVtoIntJava(normal[0]),av,Math.abs(Double.parseDouble(brdfParamG[0])),Math.abs(Double.parseDouble(brdfParamG[1])),Math.abs(Double.parseDouble(brdfParamG[8])));
 							double red=color(av.getRed(),av.getRed(),pos,E,L,H,D2,byteColorCVtoIntJava(normal[2]),byteColorCVtoIntJava(normal[1]),byteColorCVtoIntJava(normal[0]),av,Math.abs(Double.parseDouble(brdfParamR[0])),Math.abs(Double.parseDouble(brdfParamR[1])),Math.abs(Double.parseDouble(brdfParamR[8])));*/
-							double blue=color(av.getBlue(),av.getBlue(),pos,E,L,H,D2,Double.parseDouble(brdfParamB[5]),Double.parseDouble(brdfParamB[6]),2,av,Math.abs(Double.parseDouble(brdfParamB[0])),Math.abs(Double.parseDouble(brdfParamB[1])),Math.abs(Double.parseDouble(brdfParamB[8])));
-							double green=color(av.getGreen(),av.getGreen(),pos,E,L,H,D2,Double.parseDouble(brdfParamG[5]),Double.parseDouble(brdfParamG[6]),2,av,Math.abs(Double.parseDouble(brdfParamG[0])),Math.abs(Double.parseDouble(brdfParamG[1])),Math.abs(Double.parseDouble(brdfParamG[8])));
-							double red=color(av.getRed(),av.getRed(),pos,E,L,H,D2,Double.parseDouble(brdfParamR[5]),Double.parseDouble(brdfParamR[6]),2,av,Math.abs(Double.parseDouble(brdfParamR[0])),Math.abs(Double.parseDouble(brdfParamR[1])),Math.abs(Double.parseDouble(brdfParamR[8])));
+							double blue=color(av.getBlue(),av.getBlue(),pos,E,L,H,D2,Double.parseDouble(brdfParamB[5]),Double.parseDouble(brdfParamB[6]),2,av,Math.abs(Double.parseDouble(brdfParamB[0])),Math.abs(Double.parseDouble(brdfParamB[1])),Math.abs(Double.parseDouble(brdfParamB[8])),Double.parseDouble(brdfParamB[7]));
+							double green=color(av.getGreen(),av.getGreen(),pos,E,L,H,D2,Double.parseDouble(brdfParamG[5]),Double.parseDouble(brdfParamG[6]),2,av,Math.abs(Double.parseDouble(brdfParamG[0])),Math.abs(Double.parseDouble(brdfParamG[1])),Math.abs(Double.parseDouble(brdfParamG[8])),Double.parseDouble(brdfParamG[7]));
+							double red=color(av.getRed(),av.getRed(),pos,E,L,H,D2,Double.parseDouble(brdfParamR[5]),Double.parseDouble(brdfParamR[6]),2,av,Math.abs(Double.parseDouble(brdfParamR[0])),Math.abs(Double.parseDouble(brdfParamR[1])),Math.abs(Double.parseDouble(brdfParamR[8])),Double.parseDouble(brdfParamR[7]));
 							image.put(originS, originT, new byte[]{(byte)(blue),(byte)(green),(byte)(red)});
 							lb=readerB.readLine();
 							lg=readerG.readLine();
@@ -220,7 +219,7 @@ public class Main
 				}
 			}
 			System.out.println("save");
-			saveTile(image, dir+"render.jpg");
+			saveTile(image, dir+"renderDiff.jpg");
 			System.out.println("fin");
 		}
 		catch(Exception e)
@@ -228,33 +227,15 @@ public class Main
 			System.err.println("Erreur general:"+e.getMessage());
 		}		
 	}
-	public static double color(double d,double s,double[] pos,double[] E,double[] L,double[] H,double D2,double nx,double ny,double nz,Color lightColor,double rod,double ros,double alpha)
+	public static double color(double d,double s,double[] pos,double[] E,double[] L,double[] H,double D2,double nx,double ny,double nz,Color lightColor,double rod,double ros,double alpha,double tof)
 	{
 		double value=0;
+		double m=0.2;
 		double[] N=normalize(ChangeBase(new double[]{nx,ny,nz}));
-		SimpleMatrix R=new SimpleMatrix(new double[][]{
-			{0,0,N[0]},
-			{0,0,N[1]},
-			{-N[0],-N[1],0}
-		});
-		double[] Hn=normalize(calculeHn(H,N,R));	
-		double[] Hnp=normalize(div(Hn,Hn[2]));
-		SimpleMatrix M=new SimpleMatrix(new double[][]{
-			{lightColor.getRed(),lightColor.getBlue()},
-			{lightColor.getBlue(),lightColor.getGreen()},
-			
-		});
-		
-		double[] HnpW=normalize(calculeHnpW(M,Hnp[0],Hnp[1]));
-		double spec=Math.exp(-Math.pow(dot(new double[]{HnpW[0],HnpW[1]},new double[]{Hnp[0],Hnp[1]}), alpha*0.5));
+		double angle=Math.acos(dot(N,H))/m;
+		double spec=tof*Math.exp(-(angle*angle));
 		double cosine=Math.max(0, dot(N,E));
-		double F0=0.04;
-		double fres=F0+(1-F0)*Math.pow(1.0-Math.max(0, dot(H,E)), 5.0);
-		//spec=spec*fres/F0;
-		//spec=spec*fres/(4*dot(H,L));
-		double v=((spec*ros)+rod)*cosine/D2 ;//on va commenter tous les paramètres mapping => step2_1104_soir
-		//double v=rod*d;//diffuse
-		//double v=Math.max(0, dot(N, L))*d*0.5;
+		double v=((spec*0)+rod)*cosine/D2 ;//on va commenter tous les paramètres mapping => step2_1104_soir
 		v=Math.sqrt(v);
 		value=v>256?255:v<0?0:v;
 		return value;
