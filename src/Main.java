@@ -219,7 +219,7 @@ public class Main
 				}
 			}
 			System.out.println("save");
-			saveTile(image, dir+"renderDiff.jpg");
+			saveTile(image, dir+"render.jpg");
 			System.out.println("fin");
 		}
 		catch(Exception e)
@@ -253,8 +253,8 @@ public class Main
 	        P[0] = u[0] * xyz[0]+(3264) ;
 	        P[1] = v[1] * xyz[1] +(0);
 	        P[2] = w[2]*xyz[2];*/
-	        P[0] = u[0] * xyz[0]+(3263) ;//optimize7
-	        P[1] = v[1] * xyz[1] +(0);
+	        P[0] = u[0] * xyz[0]+(2304/2) ;//optimize7
+	        P[1] = v[1] * xyz[1] +(3264/2);
 	        P[2] = w[2]*xyz[2];
 	        return P;
 	 }
@@ -267,8 +267,8 @@ public class Main
         /*P[0] = u[0] * xyz[0]+(3263) ;
         P[1] = v[1] * xyz[1] +(0);
         P[2] = w[2]*xyz[2];*/
-		 P[0] = u[0] * xyz[0]+(3263) ;//optimize7
-	        P[1] = v[1] * xyz[1] +(0);
+		P[0] = u[0] * xyz[0]+(2304/2) ;//optimize7
+        P[1] = v[1] * xyz[1] +(3264/2);
 	        P[2] = w[2]*xyz[2];
         return P;
 	}
