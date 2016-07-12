@@ -136,13 +136,12 @@ public class Main
 	public static int gl=0;
 	public static void main(String[] args)
 	{
-		
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 		try
 		{
 			
 			String dir="C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\SampleTransportReflectance\\Final\\";//"C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\";
-			String path="TF_";
+			String path="source_tile_";
 			Color av=AverageColor(dir+"flash.jpg");
 			//BufferedImage[][] tiles=new BufferedImage[12][16];
 			int tileWNumber=17;
@@ -230,14 +229,15 @@ public class Main
 	public static double color(double d,double s,double[] pos,double[] E,double[] L,double[] H,double D2,double nx,double ny,double nz,Color lightColor,double rod,double ros,double alpha,double tof)
 	{
 		double value=0;
-		double m=0.2;
-		double[] N=normalize(ChangeBase(new double[]{nx,ny,nz}));
+		double m=0.3;
+		double[] N=normalize(XY(pos,ChangeBase(new double[]{nx,ny,nz})));
 		double angle=Math.acos(dot(N,H))/m;
-		double spec=tof*Math.exp(-(angle*angle));
+		double spec=1*Math.exp(-(angle*angle));
 		double cosine=Math.max(0, dot(N,E));
-		double v=((spec*0)+rod)*cosine/D2 ;//on va commenter tous les paramètres mapping => step2_1104_soir
+		
+		double v=((spec*ros)+rod);
 		v=Math.sqrt(v);
-		value=v>256?255:v<0?0:v;
+		value=v>256?255:v<0?d:v;
 		return value;
 	}
 	/*
