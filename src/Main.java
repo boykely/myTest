@@ -142,7 +142,7 @@ public class Main
 			
 			String dir="C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\SampleTransportReflectance\\Final\\";//"C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\";
 			String path="source_tile_";
-			Color av=AverageColor(dir+"flash.jpg");
+			Color av=AverageColor(dir+"flashown.jpg");
 			//BufferedImage[][] tiles=new BufferedImage[12][16];
 			int tileWNumber=17;
 			int tileHNumber=12;
@@ -229,13 +229,13 @@ public class Main
 	public static double color(double d,double s,double[] pos,double[] E,double[] L,double[] H,double D2,double nx,double ny,double nz,Color lightColor,double rod,double ros,double alpha,double tof)
 	{
 		double value=0;
-		double m=0.3;
-		double[] N=normalize(XY(pos,ChangeBase(new double[]{nx,ny,nz})));
+		double m=alpha;
+		double[] N=normalize(ChangeBase(new double[]{nx,ny,nz}));
 		double angle=Math.acos(dot(N,H))/m;
 		double spec=1*Math.exp(-(angle*angle));
 		double cosine=Math.max(0, dot(N,E));
 		
-		double v=((spec*ros)+rod);
+		double v=((spec*ros)+rod)/D2;
 		v=Math.sqrt(v);
 		value=v>256?255:v<0?d:v;
 		return value;
