@@ -173,8 +173,8 @@ public class Main
 			
 			int originS=0;
 			int originT=0;
-			double[] cam=((new double[]{0,0,1}));
-			double[] lum=((new double[]{0,0,1}));
+			double[] cam=(bigChangeBase(new double[]{0,0,1}));
+			double[] lum=(bigChangeBase(new double[]{3264/2,0,1}));
 			double[] E=new double[3];
 			double[] L=new double[3];
 			double[] H=new double[3];
@@ -211,8 +211,7 @@ public class Main
 							String[] brdfParamR=lr.split("//");
 							originS=s+192*i;//ligne
 							originT=t+192*j;//colonne
-							double[] pos=ChangeBase(new double[]{originT,originS,0});
-							if(i==0 && j==0 && s<10)System.out.println(originT+","+originS+"=>"+pos[0]+","+pos[1]);
+							double[] pos=bigChangeBase(ChangeBase(new double[]{originT,originS,0}));
 							E=normalize(XY(pos,cam));
 							L=calculeL(pos, lum);
 							double[] le=addXY(L,E);
@@ -251,7 +250,7 @@ public class Main
 	public static double color(double d,double s,double[] pos,double[] E,double[] L,double[] H,double D2,double nx,double ny,double nz,Color lightColor,double rod,double ros,double alpha,double tof)
 	{
 		double value=0;
-		double m=alpha;
+		/*double m=alpha;
 		double[] N=normalize(XY(pos,new double[]{pos[0],pos[1],1}));
 		double angle=Math.acos(Math.max(0, dot(N,H)))/m;
 		double spec=1*Math.exp(-(angle*angle));
@@ -260,6 +259,11 @@ public class Main
 		double v=((spec*ros)+rod)/D2;
 		v=Math.sqrt(v);
 		value=v>256?255:v<0?0:v;
+		*/
+		double[] N=normalize((new double[]{pos[0],pos[1],1}));
+		double diffuse=dot(N,L);	
+		//double specular=Math.
+		value=d*diffuse*0.7+0.3*d;
 		return value;
 	}
 	/*
@@ -268,7 +272,7 @@ public class Main
 	public static double[] ChangeBase(int[] xyz)
 	{
 		DenseMatrix64F CC=new DenseMatrix64F(new double[][]{
-			{1,0,0,3264/2},
+			{1,0,0,0},
 			{0,-1,0,2304/2},
 			{0,0,1,0},
 			{0,0,0,1}
@@ -290,8 +294,30 @@ public class Main
 	public static double[] ChangeBase(double[] xyz)
 	{
 		DenseMatrix64F CC=new DenseMatrix64F(new double[][]{
-			{1,0,0,3264/2},
+			{1,0,0,0},
 			{0,-1,0,2304/2},
+			{0,0,1,0},
+			{0,0,0,1}
+		});
+		DenseMatrix64F PP=new DenseMatrix64F(new double[][]{
+			{xyz[0]},
+			{xyz[1]},
+			{xyz[2]},
+			{1}
+		});
+		SimpleMatrix P=new SimpleMatrix(PP);
+		SimpleMatrix C=new SimpleMatrix(CC);
+		SimpleMatrix invC=C.invert();
+		SimpleMatrix PdansO1=invC.mult(P);
+	    return new double[]{
+	    		PdansO1.get(0),PdansO1.get(1),PdansO1.get(2)
+	    };
+	}
+	public static double[] bigChangeBase(double[] xyz)
+	{
+		DenseMatrix64F CC=new DenseMatrix64F(new double[][]{
+			{1,0,0,10000000},
+			{0,1,0,100},
 			{0,0,1,0},
 			{0,0,0,1}
 		});
