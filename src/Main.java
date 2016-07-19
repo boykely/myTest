@@ -136,13 +136,33 @@ public class Main
 	public static int gl=0;
 	public static void main(String[] args)
 	{
+		/*Changement de répère qu'on doit appliquer
+		DenseMatrix64F CC=new DenseMatrix64F(new double[][]{
+			{1,0,0,5},
+			{0,-1,0,4},
+			{0,0,1,0},
+			{0,0,0,1}
+		});
+		DenseMatrix64F PP=new DenseMatrix64F(new double[][]{
+			{0},
+			{3},
+			{0},
+			{1}
+		});
+		SimpleMatrix P=new SimpleMatrix(PP);
+		SimpleMatrix C=new SimpleMatrix(CC);
+		SimpleMatrix invC=C.invert();
+		SimpleMatrix PdansO1=invC.mult(P);
+		PdansO1.print();
+		if(true)return;
+		*/
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 		try
 		{
 			
 			String dir="C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\SampleTransportReflectance\\Final\\";//"C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\";
 			String path="source_tile_";
-			Color av=AverageColor(dir+"flashown.jpg");
+			Color av=AverageColor(dir+"flash.jpg");
 			//BufferedImage[][] tiles=new BufferedImage[12][16];
 			int tileWNumber=17;
 			int tileHNumber=12;
@@ -153,8 +173,8 @@ public class Main
 			
 			int originS=0;
 			int originT=0;
-			double[] cam=(ChangeBase(new double[]{0,0,1}));
-			double[] lum=(ChangeBase(new double[]{0,0,1}));
+			double[] cam=((new double[]{0,0,1}));
+			double[] lum=((new double[]{0,0,1}));
 			double[] E=new double[3];
 			double[] L=new double[3];
 			double[] H=new double[3];
@@ -170,9 +190,9 @@ public class Main
 			{
 				for(int j=0;j<tileWNumber;j++)
 				{
-					FileReader fileB=new FileReader(dir+"testB.txt");
-					FileReader fileG=new FileReader(dir+"testG.txt");
-					FileReader fileR=new FileReader(dir+"testR.txt");
+					FileReader fileB=new FileReader(dir+"testB20u.txt");
+					FileReader fileG=new FileReader(dir+"testG20u.txt");
+					FileReader fileR=new FileReader(dir+"testR20u.txt");
 					byte[] normal=new byte[3];
 					byte[] diff=new byte[3];
 					byte[] sp=new byte[3];
@@ -189,9 +209,10 @@ public class Main
 							String[] brdfParamB=lb.split("//");
 							String[] brdfParamG=lg.split("//");
 							String[] brdfParamR=lr.split("//");
-							originS=s+192*i;
-							originT=t+192*j;
-							double[] pos=(new double[]{originS,originT,0});
+							originS=s+192*i;//ligne
+							originT=t+192*j;//colonne
+							double[] pos=ChangeBase(new double[]{originT,originS,0});
+							if(i==0 && j==0 && s<10)System.out.println(originT+","+originS+"=>"+pos[0]+","+pos[1]);
 							E=normalize(XY(pos,cam));
 							L=calculeL(pos, lum);
 							double[] le=addXY(L,E);
@@ -200,15 +221,16 @@ public class Main
 							normalR.get(originS, originT,normal);
 							//diffuse.get(originS, originT, diff);
 							//spec.get(originS, originT, sp);
-							/*double blue=color(byteColorCVtoIntJava(diff[0]),byteColorCVtoIntJava(sp[0]),pos,E,L,H,D2,byteColorCVtoIntJava(normal[2]),byteColorCVtoIntJava(normal[1]),byteColorCVtoIntJava(normal[0]),av,Math.abs(Double.parseDouble(brdfParamB[0])),Math.abs(Double.parseDouble(brdfParamB[1])),Math.abs(Double.parseDouble(brdfParamB[8])));
-							double green=color(byteColorCVtoIntJava(diff[1]),byteColorCVtoIntJava(sp[1]),pos,E,L,H,D2,byteColorCVtoIntJava(normal[2]),byteColorCVtoIntJava(normal[1]),byteColorCVtoIntJava(normal[0]),av,Math.abs(Double.parseDouble(brdfParamG[0])),Math.abs(Double.parseDouble(brdfParamG[1])),Math.abs(Double.parseDouble(brdfParamG[8])));
-							double red=color(byteColorCVtoIntJava(diff[2]),byteColorCVtoIntJava(sp[2]),pos,E,L,H,D2,byteColorCVtoIntJava(normal[2]),byteColorCVtoIntJava(normal[1]),byteColorCVtoIntJava(normal[0]),av,Math.abs(Double.parseDouble(brdfParamR[0])),Math.abs(Double.parseDouble(brdfParamR[1])),Math.abs(Double.parseDouble(brdfParamR[8])));*/
-							/*double blue=color(av.getBlue(),av.getBlue(),pos,E,L,H,D2,byteColorCVtoIntJava(normal[2]),byteColorCVtoIntJava(normal[1]),byteColorCVtoIntJava(normal[0]),av,Math.abs(Double.parseDouble(brdfParamB[0])),Math.abs(Double.parseDouble(brdfParamB[1])),Math.abs(Double.parseDouble(brdfParamB[8])));
-							double green=color(av.getGreen(),av.getGreen(),pos,E,L,H,D2,byteColorCVtoIntJava(normal[2]),byteColorCVtoIntJava(normal[1]),byteColorCVtoIntJava(normal[0]),av,Math.abs(Double.parseDouble(brdfParamG[0])),Math.abs(Double.parseDouble(brdfParamG[1])),Math.abs(Double.parseDouble(brdfParamG[8])));
-							double red=color(av.getRed(),av.getRed(),pos,E,L,H,D2,byteColorCVtoIntJava(normal[2]),byteColorCVtoIntJava(normal[1]),byteColorCVtoIntJava(normal[0]),av,Math.abs(Double.parseDouble(brdfParamR[0])),Math.abs(Double.parseDouble(brdfParamR[1])),Math.abs(Double.parseDouble(brdfParamR[8])));*/
 							double blue=color(av.getBlue(),av.getBlue(),pos,E,L,H,D2,Double.parseDouble(brdfParamB[5]),Double.parseDouble(brdfParamB[6]),2,av,Math.abs(Double.parseDouble(brdfParamB[0])),Math.abs(Double.parseDouble(brdfParamB[1])),Math.abs(Double.parseDouble(brdfParamB[8])),Double.parseDouble(brdfParamB[7]));
 							double green=color(av.getGreen(),av.getGreen(),pos,E,L,H,D2,Double.parseDouble(brdfParamG[5]),Double.parseDouble(brdfParamG[6]),2,av,Math.abs(Double.parseDouble(brdfParamG[0])),Math.abs(Double.parseDouble(brdfParamG[1])),Math.abs(Double.parseDouble(brdfParamG[8])),Double.parseDouble(brdfParamG[7]));
 							double red=color(av.getRed(),av.getRed(),pos,E,L,H,D2,Double.parseDouble(brdfParamR[5]),Double.parseDouble(brdfParamR[6]),2,av,Math.abs(Double.parseDouble(brdfParamR[0])),Math.abs(Double.parseDouble(brdfParamR[1])),Math.abs(Double.parseDouble(brdfParamR[8])),Double.parseDouble(brdfParamR[7]));
+							/*
+							 * On utilise la normale par un fichier normal.jpg
+							double blue=color(av.getBlue(),av.getBlue(),pos,E,L,H,D2,byteColorCVtoIntJava(normal[2]),byteColorCVtoIntJava(normal[1]),byteColorCVtoIntJava(normal[0]),av,Math.abs(Double.parseDouble(brdfParamB[0])),Math.abs(Double.parseDouble(brdfParamB[1])),Math.abs(Double.parseDouble(brdfParamB[8])),Double.parseDouble(brdfParamB[7]));
+							double green=color(av.getGreen(),av.getGreen(),pos,E,L,H,D2,byteColorCVtoIntJava(normal[2]),byteColorCVtoIntJava(normal[1]),byteColorCVtoIntJava(normal[0]),av,Math.abs(Double.parseDouble(brdfParamG[0])),Math.abs(Double.parseDouble(brdfParamG[1])),Math.abs(Double.parseDouble(brdfParamG[8])),Double.parseDouble(brdfParamG[7]));
+							double red=color(av.getRed(),av.getRed(),pos,E,L,H,D2,byteColorCVtoIntJava(normal[2]),byteColorCVtoIntJava(normal[1]),byteColorCVtoIntJava(normal[0]),av,Math.abs(Double.parseDouble(brdfParamR[0])),Math.abs(Double.parseDouble(brdfParamR[1])),Math.abs(Double.parseDouble(brdfParamR[8])),Double.parseDouble(brdfParamR[7]));
+							*/
+							
 							image.put(originS, originT, new byte[]{(byte)(blue),(byte)(green),(byte)(red)});
 							lb=readerB.readLine();
 							lg=readerG.readLine();
@@ -230,47 +252,62 @@ public class Main
 	{
 		double value=0;
 		double m=alpha;
-		double[] N=normalize(ChangeBase(new double[]{nx,ny,nz}));
-		double angle=Math.acos(dot(N,H))/m;
+		double[] N=normalize(XY(pos,new double[]{pos[0],pos[1],1}));
+		double angle=Math.acos(Math.max(0, dot(N,H)))/m;
 		double spec=1*Math.exp(-(angle*angle));
 		double cosine=Math.max(0, dot(N,E));
 		
 		double v=((spec*ros)+rod)/D2;
 		v=Math.sqrt(v);
-		value=v>256?255:v<0?d:v;
+		value=v>256?255:v<0?0:v;
 		return value;
 	}
 	/*
 	 * Fonction pour la construction (Re-render)
 	 */
-	public static int[] ChangeBase(int[] xyz)
+	public static double[] ChangeBase(int[] xyz)
 	{
-	        int[] P = new int[3];
-	        int[] u = new int[] { 1, 0, 0 };
-	        int[] v = new int[] { 0, 1, 0 };
-	        int[] w = new int[] { 0, 0, 1 };
-	        /*
-	        P[0] = u[0] * xyz[0]+(3264) ;
-	        P[1] = v[1] * xyz[1] +(0);
-	        P[2] = w[2]*xyz[2];*/
-	        P[0] = u[0] * xyz[0]+(2304/2) ;//optimize7
-	        P[1] = v[1] * xyz[1] +(3264/2);
-	        P[2] = w[2]*xyz[2];
-	        return P;
+		DenseMatrix64F CC=new DenseMatrix64F(new double[][]{
+			{1,0,0,3264/2},
+			{0,-1,0,2304/2},
+			{0,0,1,0},
+			{0,0,0,1}
+		});
+		DenseMatrix64F PP=new DenseMatrix64F(new double[][]{
+			{xyz[0]},
+			{xyz[1]},
+			{xyz[2]},
+			{1}
+		});
+		SimpleMatrix P=new SimpleMatrix(PP);
+		SimpleMatrix C=new SimpleMatrix(CC);
+		SimpleMatrix invC=C.invert();
+		SimpleMatrix PdansO1=invC.mult(P);
+	    return new double[]{
+	    		PdansO1.get(0),PdansO1.get(1),PdansO1.get(2)
+	    };
 	 }
 	public static double[] ChangeBase(double[] xyz)
 	{
-		double[] P = new double[3];
-		double[] u = new double[] { 1, 0, 0 };
-		double[] v = new double[] { 0, 1, 0 };
-		double[] w = new double[] { 0, 0, 1 };
-        /*P[0] = u[0] * xyz[0]+(3263) ;
-        P[1] = v[1] * xyz[1] +(0);
-        P[2] = w[2]*xyz[2];*/
-		P[0] = u[0] * xyz[0]+(2304/2) ;//optimize7
-        P[1] = v[1] * xyz[1] +(3264/2);
-	        P[2] = w[2]*xyz[2];
-        return P;
+		DenseMatrix64F CC=new DenseMatrix64F(new double[][]{
+			{1,0,0,3264/2},
+			{0,-1,0,2304/2},
+			{0,0,1,0},
+			{0,0,0,1}
+		});
+		DenseMatrix64F PP=new DenseMatrix64F(new double[][]{
+			{xyz[0]},
+			{xyz[1]},
+			{xyz[2]},
+			{1}
+		});
+		SimpleMatrix P=new SimpleMatrix(PP);
+		SimpleMatrix C=new SimpleMatrix(CC);
+		SimpleMatrix invC=C.invert();
+		SimpleMatrix PdansO1=invC.mult(P);
+	    return new double[]{
+	    		PdansO1.get(0),PdansO1.get(1),PdansO1.get(2)
+	    };
 	}
 	public static int[] XY(int[] x,int[] y)
 	{
